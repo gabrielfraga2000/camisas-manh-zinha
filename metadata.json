@@ -1,0 +1,5 @@
+{
+  "name": "VolleyTeam Orders",
+  "description": "A team jersey ordering system ensuring unique player numbers per gender.",
+  "requestFramePermissions": []
+}
