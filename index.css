@@ -1,0 +1,71 @@
+:root {
+  --primary: #9c4f1e;
+  --primary-container: #ffae81;
+  --on-primary: #ffffff;
+  --secondary: #7e6015;
+  --secondary-container: #ffdea1;
+  --tertiary: #79578c;
+  --background: #fffcf5;
+  --surface: #fffcf5;
+  --on-surface: #38392e;
+  --surface-container: #f6f4e9;
+  --surface-container-low: #fcf9f0;
+  --surface-container-lowest: #ffffff;
+}
+
+body {
+  background: var(--background);
+  color: var(--on-surface);
+  min-height: 100-screen;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+@keyframes sunrise {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.bg-sunrise {
+  background: linear-gradient(135deg, #fffcf5 0%, #ffae81 50%, #fffcf5 100%);
+  background-size: 200% 200%;
+  animation: sunrise 15s ease infinite;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(156, 79, 30, 0.1);
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(156, 79, 30, 0.3);
+}
+
+.input-glow:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255, 158, 102, 0.3);
+  background-color: var(--surface-container-lowest);
+}
+
+/* Custom size chip selection */
+.size-chip {
+  transition: all 0.2s ease;
+}
+
+.size-chip.active {
+  background-color: var(--secondary-container);
+  color: var(--secondary);
+  box-shadow: 0 0 8px var(--secondary-container);
+}

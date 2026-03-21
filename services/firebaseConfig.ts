@@ -4,17 +4,16 @@ import { getFirestore } from "firebase/firestore";
 // TODO: Replace with your actual Firebase project configuration
 // You can get this from the Firebase Console -> Project Settings -> General
 const firebaseConfig = {
-  apiKey: "AIzaSyBMR4XkaSmbnUsrhk1bm5ZGmizz2cLyGhs",
-  authDomain: "manhazinha-camisas.firebaseapp.com",
-  projectId: "manhazinha-camisas",
-  storageBucket: "manhazinha-camisas.firebasestorage.app",
-  messagingSenderId: "1010526078467",
-  appId: "1:1010526078467:web:2559ecb8c9c5fb72aeb036"
+  apiKey: "AIzaSyAR29RLS8JnQkivOEuYjbcAiMHtngB2UrY",
+  authDomain: "camisas-2026.firebaseapp.com",
+  projectId: "camisas-2026",
+  storageBucket: "camisas-2026.firebasestorage.app",
+  messagingSenderId: "133649785821",
+  appId: "1:133649785821:web:6aa0c43f6ee1c1f0b38c34"
 };
 
 // Safety check: verify if the user has actually configured the keys.
-// If not, we don't initialize Firebase to prevent the app from crashing (White Screen).
-const isConfigured = firebaseConfig.apiKey !== "AIzaSyBMR4XkaSmbnUsrhk1bm5ZGmizz2cLyGhs";
+const isConfigured = firebaseConfig.apiKey !== "";
 
 let app;
 let dbInstance;

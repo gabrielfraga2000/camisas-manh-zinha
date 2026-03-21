@@ -3,38 +3,31 @@ import { ShirtOption, ShirtSize } from './types';
 export const SHIRT_OPTIONS: ShirtOption[] = [
   {
     id: 1,
-    name: "Titular Oficial",
-    description: "Azul Marinho com detalhes dourados. O clássico.",
-    imageColor: "bg-blue-900"
+    name: "Camisa Gabardine (Manga)",
+    description: "Toque macio e acabamento premium. Ideal para eventos formais.",
+    imageColor: "bg-orange-100" // Light sunrise color
   },
   {
     id: 2,
-    name: "Visitante (Branca)",
-    description: "Branca com faixas laterais azuis. Leve e respirável.",
-    imageColor: "bg-slate-100"
-  },
-  {
-    id: 3,
-    name: "Treino (Laranja)",
-    description: "Laranja vibrante para visibilidade em quadra.",
-    imageColor: "bg-orange-500"
-  },
-  {
-    id: 4,
-    name: "Libero (Vermelha)",
-    description: "Vermelho intenso, destaque total na defesa.",
-    imageColor: "bg-red-600"
-  },
-  {
-    id: 5,
-    name: "Edição Especial (Preta)",
-    description: "All-black com logos em cinza fosco. Estilo puro.",
-    imageColor: "bg-zinc-900"
+    name: "Camisa Regata",
+    description: "Frescor e conforto para o dia a dia. Perfeita para o calor.",
+    imageColor: "bg-yellow-50" // Soft morning sun
   }
 ];
 
 export const SIZES: ShirtSize[] = ['PP', 'P', 'M', 'G', 'GG', 'XG'];
 
-// This flag controls whether we use LocalStorage (Demo) or Firebase (Real)
-// Set to FALSE to use Real Firebase after configuring it.
-export const USE_MOCK_DB = true;
+export const PRICES: Record<number, number> = {
+  1: 70,
+  2: 60
+};
+
+export const PIX_KEY = "manhazinha@pix.com";
+
+export const INSTALLMENT_INFO = {
+  first: "50% (agora para reserva)",
+  second: "50% (na entrega - previsão Abril/2026)",
+};
+
+// Set to FALSE to use Real Firebase with user credentials
+export const USE_MOCK_DB = false;

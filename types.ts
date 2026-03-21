@@ -11,12 +11,14 @@ export interface ShirtOption {
 
 export interface Order {
   id?: string;
-  customerName: string;
-  email: string; // Useful for contact
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
   shirtId: number;
   size: ShirtSize;
   gender: Gender;
   number: number;
+  totalPrice: number;
   createdAt: number;
 }
 
