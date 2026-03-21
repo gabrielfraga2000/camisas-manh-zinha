@@ -3,15 +3,17 @@ import { ShirtOption, ShirtSize } from './types';
 export const SHIRT_OPTIONS: ShirtOption[] = [
   {
     id: 1,
-    name: "Camisa Gabardine (Manga)",
+    name: "Manga",
     description: "Toque macio e acabamento premium. Ideal para eventos formais.",
-    imageColor: "bg-orange-100" // Light sunrise color
+    imageColor: "bg-orange-100", // Light sunrise color
+    type: 'MANGA'
   },
   {
     id: 2,
-    name: "Camisa Regata",
+    name: "Regata",
     description: "Frescor e conforto para o dia a dia. Perfeita para o calor.",
-    imageColor: "bg-yellow-50" // Soft morning sun
+    imageColor: "bg-yellow-50", // Soft morning sun
+    type: 'REGATA'
   }
 ];
 

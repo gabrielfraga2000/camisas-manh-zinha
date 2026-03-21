@@ -7,6 +7,8 @@ export interface ShirtOption {
   name: string;
   description: string;
   imageColor: string; // Used for the placeholder visualization
+  image?: string; // Optional Base64 image
+  type: 'MANGA' | 'REGATA'; // Key for the image asset
 }
 
 export interface Order {

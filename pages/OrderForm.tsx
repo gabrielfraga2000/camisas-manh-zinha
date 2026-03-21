@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SHIRT_OPTIONS, SIZES, PRICES, PIX_KEY, USE_MOCK_DB, CURRENT_SEASON } from '../constants';
+import { SHIRT_IMAGES } from '../assets';
 import { Gender, Order, ShirtSize } from '../types';
 import { checkNumberAvailability, submitOrder, subscribeToTakenNumbers } from '../services/orderService';
 import StepProgressBar from '../components/StepProgressBar';
@@ -315,8 +316,17 @@ const OrderForm: React.FC = () => {
                     >
                       {isSelected && <div className="absolute -top-3 -right-3 bg-orange-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-black animate-pop-in">✓</div>}
                       
-                      <div className={`aspect-square w-full rounded-2xl ${shirt.imageColor} mb-8 flex items-center justify-center shadow-inner group-hover:scale-[1.05] transition-transform`}>
-                        <span className="text-7xl group-hover:rotate-6 transition-transform">👕</span>
+                      <div className={`aspect-square w-full rounded-2xl ${shirt.imageColor} mb-8 flex items-center justify-center shadow-inner group-hover:scale-[1.05] transition-transform overflow-hidden relative`}>
+                        {SHIRT_IMAGES[shirt.type] ? (
+                          <img 
+                            src={SHIRT_IMAGES[shirt.type]} 
+                            alt={shirt.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-7xl group-hover:rotate-6 transition-transform">{shirt.id === 1 ? '👕' : '🎽'}</span>
+                        )}
+                        <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity" />
                       </div>
 
                       <div className="flex justify-between items-start mb-6 gap-4">
@@ -454,8 +464,18 @@ const OrderForm: React.FC = () => {
                       return (
                         <div key={id} className="bg-white/80 rounded-[2.5rem] p-8 border-2 border-orange-100 shadow-xl flex justify-between items-center group relative overflow-hidden">
                            <div className="absolute top-0 right-0 w-20 h-20 bg-orange-100 blur-3xl opacity-30 rounded-full" />
-                           <div className="flex items-center gap-6 relative">
-                              <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner">👕</div>
+                            <div className="flex items-center gap-6 relative text-left">
+                               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-4xl shadow-inner overflow-hidden border border-orange-50">
+                                  {SHIRT_IMAGES[SHIRT_OPTIONS.find(s => s.id === id)?.type || 'MANGA'] ? (
+                                    <img 
+                                      src={SHIRT_IMAGES[SHIRT_OPTIONS.find(s => s.id === id)?.type || 'MANGA']} 
+                                      alt="Shirt preview"
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <span>👕</span>
+                                  )}
+                               </div>
                               <div>
                                  <p className="font-black text-gray-900 text-xl leading-none mb-2">{SHIRT_OPTIONS.find(s => s.id === id)?.name}</p>
                                  <p className="text-xs font-black text-orange-600 uppercase tracking-widest">{details.size} • #{shirtNumber} • {details.name}</p>
