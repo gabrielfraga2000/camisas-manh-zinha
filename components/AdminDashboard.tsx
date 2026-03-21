@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { subscribeToAllOrders, deleteOrder, updateOrder } from '../services/orderService';
 import { Order } from '../types';
-import { SHIRT_OPTIONS } from '../constants';
+import { SHIRT_OPTIONS, SIZES } from '../constants';
 
 const AdminDashboard: React.FC = () => {
   const [orders, setOrders] = useState<(Order & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'pending' | 'partial' | 'paid'>('all');
 
   useEffect(() => {
     const unsubscribe = subscribeToAllOrders((data) => {
@@ -16,12 +17,22 @@ const AdminDashboard: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const filteredOrders = orders.filter(o => 
-    o.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.phoneNumber.includes(searchTerm) ||
-    o.number.toString().includes(searchTerm)
-  );
+  const filteredOrders = orders.filter(o => {
+    const matchesSearch = 
+      o.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      o.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      o.phoneNumber.includes(searchTerm) ||
+      o.number.toString().includes(searchTerm);
+    
+    if (!matchesSearch) return false;
+
+    const paid = o.paidAmount || 0;
+    if (paymentFilter === 'pending') return paid === 0;
+    if (paymentFilter === 'partial') return paid > 0 && paid < o.totalPrice;
+    if (paymentFilter === 'paid') return paid >= o.totalPrice;
+    
+    return true;
+  });
 
   const totalRecebido = orders.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
   const totalPendente = orders.reduce((sum, o) => sum + (o.totalPrice - (o.paidAmount || 0)), 0);
@@ -68,22 +79,29 @@ const AdminDashboard: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const exportWhatsApp = () => {
-    let text = "*LISTA DE PEDIDOS MANHÃZINHA*\n\n";
+  const exportWhatsApp = (sortBy: 'name' | 'size') => {
+    let text = `*LISTA DE PEDIDOS MANHÃZINHA (${sortBy === 'name' ? 'A-Z' : 'TAMANHOS'})*\n\n`;
     
     SHIRT_OPTIONS.forEach(shirt => {
-      const shirtOrders = filteredOrders.filter(o => o.shirtId === shirt.id);
+      let shirtOrders = filteredOrders.filter(o => o.shirtId === shirt.id);
+      
       if (shirtOrders.length > 0) {
+        if (sortBy === 'name') {
+          shirtOrders.sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`));
+        } else {
+          shirtOrders.sort((a, b) => SIZES.indexOf(a.size) - SIZES.indexOf(b.size));
+        }
+
         text += `*--- ${shirt.name.toUpperCase()} ---*\n`;
         shirtOrders.forEach(o => {
-          text += `${o.firstName} ${o.lastName} - ${o.shirtName} - #${o.number} - ${o.size}\n`;
+          text += `${o.firstName} ${o.lastName} - ${o.shirtName} - #${o.number.toString().padStart(2, '0')} - ${o.size}\n`;
         });
         text += "\n";
       }
     });
 
     navigator.clipboard.writeText(text);
-    alert("Lista formatada para WhatsApp copiada para a área de transferência!");
+    alert(`Lista (${sortBy === 'name' ? 'O. Alfabética' : 'por Tamanho'}) copiada para o WhatsApp!`);
   };
 
   const handleDelete = async (id: string) => {
@@ -128,11 +146,39 @@ const AdminDashboard: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          
+          <div className="flex bg-white/50 p-1 rounded-2xl border border-orange-100">
+             {[
+               {id: 'all', label: 'Todos'},
+               {id: 'pending', label:'Pendentes'},
+               {id: 'partial', label: 'Parciais'},
+               {id: 'paid', label: 'Pagos'}
+             ].map(f => (
+               <button
+                 key={f.id}
+                 onClick={() => setPaymentFilter(f.id as any)}
+                 className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                   paymentFilter === f.id ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-400 hover:text-orange-500'
+                 }`}
+               >
+                  {f.label}
+               </button>
+             ))}
+          </div>
+
           <button 
-            onClick={exportWhatsApp}
+            onClick={() => exportWhatsApp('name')}
             className="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-xl flex items-center gap-2"
+            title="Exportar em ordem alfabética"
           >
-            <span>📱</span> Lista WhatsApp
+            <span>📱</span> WhatsApp (A-Z)
+          </button>
+          <button 
+            onClick={() => exportWhatsApp('size')}
+            className="bg-emerald-600/80 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-xl flex items-center gap-2"
+            title="Exportar por ordem de tamanho"
+          >
+            <span>📱</span> WhatsApp (Tam)
           </button>
           <button 
             onClick={exportCSV}
