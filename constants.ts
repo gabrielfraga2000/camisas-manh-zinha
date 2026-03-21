@@ -29,8 +29,8 @@ export const PIX_KEY = "voleimanhazinha@gmail.com";
 export const CURRENT_SEASON = "#6"; // Identified as the 6th ordering cycle
 
 export const INSTALLMENT_INFO = {
-  first: "50% (agora para reserva)",
-  second: "50% (na entrega - previsão Abril/2026)",
+  first: "50% (até 07/04 para reserva)",
+  second: "50% (em 21/04)",
 };
 
 // Set to FALSE to use Real Firebase with user credentials

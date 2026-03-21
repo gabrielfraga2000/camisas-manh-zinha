@@ -147,6 +147,7 @@ const OrderForm: React.FC = () => {
           size: details.size,
           number: parseInt(shirtNumber, 10),
           totalPrice: PRICES[id],
+          paidAmount: 0,
           createdAt: Date.now(),
           season: CURRENT_SEASON
         };
@@ -494,11 +495,11 @@ const OrderForm: React.FC = () => {
                        
                        <div className="space-y-4 pt-6 border-t border-white/20">
                           <div className="flex justify-between font-black">
-                             <span className="text-xs opacity-70 uppercase">1ª Parcela</span>
+                             <span className="text-xs opacity-70 uppercase">1ª Parcela (até 07/04)</span>
                              <span className="text-base">R$ {(totalAmount * 0.5).toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between opacity-60 text-xs font-bold uppercase">
-                             <span>2ª Parcela</span>
+                             <span>2ª Parcela (21/04)</span>
                              <span>R$ {(totalAmount * 0.5).toFixed(2)}</span>
                           </div>
                        </div>

@@ -22,6 +22,7 @@ export interface Order {
   gender: Gender;
   number: number;
   totalPrice: number;
+  paidAmount?: number;
   createdAt: number;
   season: string;
 }

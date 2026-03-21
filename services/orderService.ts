@@ -6,7 +6,8 @@ import {
   getDocs,
   onSnapshot,
   deleteDoc,
-  doc
+  doc,
+  updateDoc
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
 import { Order, Gender, AvailabilityCheck } from '../types';
@@ -143,6 +144,29 @@ export const submitOrder = async (order: Order): Promise<boolean> => {
       return true;
     } catch (error) {
       console.error("Firebase Submit Error:", error);
+      throw error;
+    }
+  }
+};
+
+export const updateOrder = async (orderId: string, updates: Partial<Order>): Promise<boolean> => {
+  if (USE_MOCK_DB) {
+    const orders = getMockOrders();
+    const index = orders.findIndex(o => (o as any).id === orderId);
+    if (index !== -1) {
+      orders[index] = { ...orders[index], ...updates };
+      localStorage.setItem('manhazinha_orders', JSON.stringify(orders));
+      return true;
+    }
+    return false;
+  } else {
+    try {
+      if (!db) throw new Error("Firebase logic error: db not initialized");
+      const orderRef = doc(db, COLLECTION_NAME, orderId);
+      await updateDoc(orderRef, updates as any);
+      return true;
+    } catch (error) {
+      console.error("Firebase Update Error:", error);
       throw error;
     }
   }

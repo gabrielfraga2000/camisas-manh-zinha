@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { subscribeToAllOrders, deleteOrder } from '../services/orderService';
+import { subscribeToAllOrders, deleteOrder, updateOrder } from '../services/orderService';
 import { Order } from '../types';
 import { SHIRT_OPTIONS } from '../constants';
 
@@ -23,10 +23,24 @@ const AdminDashboard: React.FC = () => {
     o.number.toString().includes(searchTerm)
   );
 
+  const totalRecebido = orders.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
+  const totalPendente = orders.reduce((sum, o) => sum + (o.totalPrice - (o.paidAmount || 0)), 0);
+
+  const handleUpdatePaidAmount = async (id: string, amount: string) => {
+    const val = parseFloat(amount);
+    if (isNaN(val)) return;
+    try {
+      await updateOrder(id, { paidAmount: val });
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao atualizar pagamento.");
+    }
+  };
+
   const getShirtName = (id: number) => SHIRT_OPTIONS.find(s => s.id === id)?.name || 'N/A';
 
   const exportCSV = () => {
-    const headers = ['Nome', 'Sobrenome', 'Nome na Camisa', 'Genero', 'WhatsApp', 'Modelo', 'Tamanho', 'Numero', 'Temporada', 'Preco Total'];
+    const headers = ['Nome', 'Sobrenome', 'Nome na Camisa', 'Genero', 'WhatsApp', 'Modelo', 'Tamanho', 'Numero', 'Temporada', 'Preco Total', 'Valor Pago'];
     const rows = filteredOrders.map(o => [
       o.firstName,
       o.lastName,
@@ -37,7 +51,8 @@ const AdminDashboard: React.FC = () => {
       o.size,
       o.number,
       o.season,
-      o.totalPrice
+      o.totalPrice,
+      o.paidAmount || 0
     ]);
 
     const csvContent = "data:text/csv;charset=utf-8," 
@@ -93,6 +108,16 @@ const AdminDashboard: React.FC = () => {
             </span>
             <span className="text-gray-400 text-sm font-medium italic">Manhãzinha 2026</span>
           </div>
+          <div className="flex gap-4 mt-4">
+            <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-3xl">
+              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Total Recebido</p>
+              <p className="text-2xl font-black text-emerald-900 leading-none">R$ {totalRecebido.toFixed(2)}</p>
+            </div>
+            <div className="bg-orange-50 border border-orange-100 p-4 rounded-3xl">
+              <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">Total Pendente</p>
+              <p className="text-2xl font-black text-orange-900 leading-none">R$ {totalPendente.toFixed(2)}</p>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-4 w-full md:w-auto">
@@ -129,6 +154,7 @@ const AdminDashboard: React.FC = () => {
                 <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest">Número</th>
                 <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest">Temporada</th>
                 <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest text-right">Total</th>
+                <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest text-center">Pagamento</th>
                 <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest text-center">Ações</th>
               </tr>
             </thead>
@@ -183,6 +209,27 @@ const AdminDashboard: React.FC = () => {
                     </td>
                     <td className="p-6 text-right">
                       <span className="font-black text-gray-900">R$ {order.totalPrice.toFixed(2)}</span>
+                    </td>
+                    <td className="p-6">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">R$</span>
+                          <input 
+                            type="number" 
+                            step="0.1"
+                            defaultValue={order.paidAmount || 0}
+                            onBlur={(e) => handleUpdatePaidAmount(order.id, e.target.value)}
+                            className="w-20 p-1 bg-white border border-gray-100 rounded-lg font-bold text-sm text-center outline-none focus:border-orange-500"
+                          />
+                        </div>
+                        { (order.paidAmount || 0) >= order.totalPrice ? (
+                          <span className="text-[8px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-widest">Pago</span>
+                        ) : (order.paidAmount || 0) > 0 ? (
+                          <span className="text-[8px] font-black bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full uppercase tracking-widest">Parcial</span>
+                        ) : (
+                          <span className="text-[8px] font-black bg-red-100 text-red-700 px-2 py-0.5 rounded-full uppercase tracking-widest">Pendente</span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-6 text-center">
                       <button 
