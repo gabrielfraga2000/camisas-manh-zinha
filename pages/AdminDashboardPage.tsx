@@ -7,7 +7,7 @@ const AdminDashboardPage: React.FC = () => {
       {/* Header */}
       <header className="pt-16 pb-12 text-center">
         <h1 className="text-5xl font-black text-gray-900 tracking-tighter mb-2 italic">MANHÃZINHA</h1>
-        <p className="text-orange-900/60 font-medium tracking-wide uppercase text-xs">Painel de Controle</p>
+        <p className="text-orange-900/60 font-medium tracking-wide uppercase text-xs">Painel de Controle • Pedido #6</p>
       </header>
 
       <main className="max-w-7xl mx-auto px-6">

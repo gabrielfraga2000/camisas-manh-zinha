@@ -4,11 +4,13 @@ import {
   query, 
   where, 
   getDocs,
-  onSnapshot
+  onSnapshot,
+  deleteDoc,
+  doc
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
 import { Order, Gender, AvailabilityCheck } from '../types';
-import { USE_MOCK_DB } from '../constants';
+import { USE_MOCK_DB, CURRENT_SEASON } from '../constants';
 
 const COLLECTION_NAME = 'orders';
 
@@ -21,25 +23,33 @@ if (typeof window !== 'undefined') {
 
 export const subscribeToTakenNumbers = (
   gender: Gender,
+  currentPhone: string, // Added to exclude user's own numbers from being "taken"
   onUpdate: (taken: number[]) => void
 ) => {
   if (USE_MOCK_DB) {
-    // Simulate initial call
-    const filtered = mockOrders.filter(o => o.gender === gender).map(o => o.number);
-    onUpdate(filtered);
-    return () => {}; // Nothing to unsubscribe in mock
+    // Show numbers taken by OTHERS across all seasons
+    const filtered = mockOrders
+      .filter(o => o.gender === gender && o.phoneNumber !== currentPhone)
+      .map(o => o.number);
+    onUpdate(Array.from(new Set(filtered))); // Unique numbers
+    return () => {}; 
   }
 
-  if (!db) return () => {};
+  if (!db || !gender) return () => {};
 
+  // Check all orders for this gender
   const q = query(
     collection(db, COLLECTION_NAME),
     where("gender", "==", gender)
   );
 
   return onSnapshot(q, (snapshot) => {
-    const taken = snapshot.docs.map(doc => (doc.data() as Order).number);
-    onUpdate(taken);
+    // Filter in JS to easily handle the phone exclusion
+    const orders = snapshot.docs.map(doc => doc.data() as Order);
+    const taken = orders
+      .filter(o => o.phoneNumber !== currentPhone)
+      .map(o => o.number);
+    onUpdate(Array.from(new Set(taken)));
   }, (error) => {
     console.error("Firestore Subscribe Error:", error);
   });
@@ -62,6 +72,7 @@ export const subscribeToAllOrders = (
       id: doc.id, 
       ...doc.data() 
     } as Order & { id: string }));
+    orders.sort((a, b) => b.createdAt - a.createdAt);
     onUpdate(orders);
   }, (error) => {
     console.error("Firestore All Orders Error:", error);
@@ -70,17 +81,16 @@ export const subscribeToAllOrders = (
 
 /**
  * MOCK IMPLEMENTATION (LOCAL STORAGE)
- * Allows the user to test the logic without setting up Firebase immediately.
  */
 const getMockOrders = (): Order[] => {
-  const stored = localStorage.getItem('mock_orders');
+  const stored = localStorage.getItem('manhazinha_orders');
   return stored ? JSON.parse(stored) : [];
 };
 
 const saveMockOrder = (order: Order) => {
   const orders = getMockOrders();
   orders.push({ ...order, id: Math.random().toString(36).substr(2, 9) });
-  localStorage.setItem('mock_orders', JSON.stringify(orders));
+  localStorage.setItem('manhazinha_orders', JSON.stringify(orders));
 };
 
 /**
@@ -89,13 +99,14 @@ const saveMockOrder = (order: Order) => {
 
 export const checkNumberAvailability = async (
   number: number,
-  gender: Gender
+  gender: Gender,
+  currentPhone: string // Now requires current phone
 ): Promise<AvailabilityCheck> => {
   if (USE_MOCK_DB) {
-    await new Promise(resolve => setTimeout(resolve, 600)); 
     const orders = getMockOrders();
-    const exists = orders.some(o => o.number === number && o.gender === gender);
-    if (exists) return { available: false, message: `O número ${number} já foi escolhido para o gênero ${gender === 'MASCULINO' ? 'Masculino' : 'Feminino'}.` };
+    // Taken if exists with DIFFERENT phone
+    const exists = orders.some(o => o.number === number && o.gender === gender && o.phoneNumber !== currentPhone);
+    if (exists) return { available: false, message: "No seu gênero, este número já está reservado." };
     return { available: true };
   } else {
     try {
@@ -106,8 +117,12 @@ export const checkNumberAvailability = async (
         where("gender", "==", gender)
       );
       const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        return { available: false, message: `O número ${number} já foi escolhido para o gênero ${gender === 'MASCULINO' ? 'Masculino' : 'Feminino'}.` };
+      
+      // If someone else has it, it's unavailable
+      const someoneElseHasIt = querySnapshot.docs.some(doc => (doc.data() as Order).phoneNumber !== currentPhone);
+      
+      if (someoneElseHasIt) {
+        return { available: false, message: "No seu gênero, este número já está reservado." };
       }
       return { available: true };
     } catch (error) {
@@ -119,7 +134,6 @@ export const checkNumberAvailability = async (
 
 export const submitOrder = async (order: Order): Promise<boolean> => {
   if (USE_MOCK_DB) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
     saveMockOrder(order);
     return true;
   } else {
@@ -129,6 +143,25 @@ export const submitOrder = async (order: Order): Promise<boolean> => {
       return true;
     } catch (error) {
       console.error("Firebase Submit Error:", error);
+      throw error;
+    }
+  }
+};
+
+export const deleteOrder = async (orderId: string): Promise<boolean> => {
+  if (USE_MOCK_DB) {
+    const orders = getMockOrders();
+    const filtered = orders.filter(o => (o as any).id !== orderId);
+    localStorage.setItem('manhazinha_orders', JSON.stringify(filtered));
+    return true;
+  } else {
+    try {
+      if (!db) throw new Error("Firebase logic error: db not initialized");
+      const orderRef = doc(db, COLLECTION_NAME, orderId);
+      await deleteDoc(orderRef);
+      return true;
+    } catch (error) {
+      console.error("Firebase Delete Error:", error);
       throw error;
     }
   }

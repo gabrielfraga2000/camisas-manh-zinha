@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { subscribeToAllOrders } from '../services/orderService';
+import { subscribeToAllOrders, deleteOrder } from '../services/orderService';
 import { Order } from '../types';
 import { SHIRT_OPTIONS } from '../constants';
 
@@ -26,15 +26,17 @@ const AdminDashboard: React.FC = () => {
   const getShirtName = (id: number) => SHIRT_OPTIONS.find(s => s.id === id)?.name || 'N/A';
 
   const exportCSV = () => {
-    const headers = ['Nome', 'Sobrenome', 'Genero', 'WhatsApp', 'Modelo', 'Tamanho', 'Numero', 'Preco Total'];
+    const headers = ['Nome', 'Sobrenome', 'Nome na Camisa', 'Genero', 'WhatsApp', 'Modelo', 'Tamanho', 'Numero', 'Temporada', 'Preco Total'];
     const rows = filteredOrders.map(o => [
       o.firstName,
       o.lastName,
+      o.shirtName,
       o.gender,
       o.phoneNumber,
       getShirtName(o.shirtId),
       o.size,
       o.number,
+      o.season,
       o.totalPrice
     ]);
 
@@ -51,6 +53,35 @@ const AdminDashboard: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const exportWhatsApp = () => {
+    let text = "*LISTA DE PEDIDOS MANHÃZINHA*\n\n";
+    
+    SHIRT_OPTIONS.forEach(shirt => {
+      const shirtOrders = filteredOrders.filter(o => o.shirtId === shirt.id);
+      if (shirtOrders.length > 0) {
+        text += `*--- ${shirt.name.toUpperCase()} ---*\n`;
+        shirtOrders.forEach(o => {
+          text += `${o.firstName} ${o.lastName} - ${o.shirtName} - #${o.number} - ${o.size}\n`;
+        });
+        text += "\n";
+      }
+    });
+
+    navigator.clipboard.writeText(text);
+    alert("Lista formatada para WhatsApp copiada para a área de transferência!");
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("🚨 Tem certeza que deseja EXCLUIR este pedido? Esta ação é permanente e removerá o horário/número escolhido do sistema.")) {
+      try {
+        await deleteOrder(id);
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao excluir o pedido. Tente novamente.");
+      }
+    }
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
@@ -64,19 +95,25 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex gap-4 w-full md:w-auto">
+        <div className="flex flex-wrap gap-4 w-full md:w-auto">
           <input 
             type="text" 
-            placeholder="Pesquisar por nome, tel ou número..."
-            className="flex-1 md:w-64 p-4 bg-white/80 border border-orange-100 rounded-2xl shadow-sm focus:border-orange-500 outline-none transition-all text-sm"
+            placeholder="Pesquisar..."
+            className="flex-1 md:w-48 p-4 bg-white/80 border border-orange-100 rounded-2xl shadow-sm focus:border-orange-500 outline-none transition-all text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <button 
+            onClick={exportWhatsApp}
+            className="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-xl flex items-center gap-2"
+          >
+            <span>📱</span> Lista WhatsApp
+          </button>
+          <button 
             onClick={exportCSV}
             className="bg-purple-900 text-white px-6 py-4 rounded-2xl font-bold text-sm hover:bg-purple-800 transition-all shadow-xl flex items-center gap-2"
           >
-            <span>📥</span> Exportar CSV
+            <span>📥</span> CSV
           </button>
         </div>
       </div>
@@ -87,16 +124,18 @@ const AdminDashboard: React.FC = () => {
             <thead>
               <tr className="bg-orange-50/50">
                 <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest">Cliente</th>
-                <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest">Gênero</th>
+                <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest">Personalização</th>
                 <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest">Produto</th>
                 <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest">Número</th>
+                <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest">Temporada</th>
                 <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest text-right">Total</th>
+                <th className="p-6 text-xs font-black text-orange-900 uppercase tracking-widest text-center">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-orange-100/30">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="p-20 text-center">
+                  <td colSpan={6} className="p-20 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
                       <p className="text-gray-400 font-bold text-sm animate-pulse">Carregando pedidos...</p>
@@ -105,7 +144,7 @@ const AdminDashboard: React.FC = () => {
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-20 text-center">
+                  <td colSpan={6} className="p-20 text-center">
                     <p className="text-gray-400 font-bold italic">Nenhum pedido encontrado.</p>
                   </td>
                 </tr>
@@ -119,11 +158,12 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-6">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
-                        order.gender === 'MASCULINO' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'
-                      }`}>
-                        {order.gender}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="font-black text-orange-600 uppercase tracking-tighter italic text-lg leading-none mb-1">
+                          {order.shirtName}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Nome na Camisa</span>
+                      </div>
                     </td>
                     <td className="p-6">
                       <div className="flex flex-col">
@@ -136,8 +176,24 @@ const AdminDashboard: React.FC = () => {
                         {order.number.toString().padStart(2, '0')}
                       </span>
                     </td>
+                    <td className="p-6">
+                      <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg italic">
+                        {order.season}
+                      </span>
+                    </td>
                     <td className="p-6 text-right">
                       <span className="font-black text-gray-900">R$ {order.totalPrice.toFixed(2)}</span>
+                    </td>
+                    <td className="p-6 text-center">
+                      <button 
+                        onClick={() => handleDelete(order.id)}
+                        className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        title="Excluir Pedido"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </td>
                   </tr>
                 ))

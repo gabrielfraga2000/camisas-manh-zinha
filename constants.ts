@@ -22,7 +22,9 @@ export const PRICES: Record<number, number> = {
   2: 60
 };
 
-export const PIX_KEY = "manhazinha@pix.com";
+export const PIX_KEY = "voleimanhazinha@gmail.com";
+
+export const CURRENT_SEASON = "#6"; // Identified as the 6th ordering cycle
 
 export const INSTALLMENT_INFO = {
   first: "50% (agora para reserva)",
