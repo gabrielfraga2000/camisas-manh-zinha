@@ -39,8 +39,10 @@ const AdminDashboard: React.FC = () => {
     return true;
   });
 
-  const totalRecebido = orders.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
-  const totalPendente = orders.reduce((sum, o) => sum + (o.totalPrice - (o.paidAmount || 0)), 0);
+  const seasonFilteredOrders = orders.filter(o => seasonFilter === 'all' || o.season === seasonFilter);
+
+  const totalRecebido = seasonFilteredOrders.reduce((sum, o) => sum + (o.paidAmount || 0), 0);
+  const totalPendente = seasonFilteredOrders.reduce((sum, o) => sum + (o.totalPrice - (o.paidAmount || 0)), 0);
 
   const handleUpdatePaidAmount = async (id: string, amount: string) => {
     const val = parseFloat(amount);
@@ -127,7 +129,7 @@ const AdminDashboard: React.FC = () => {
           <h1 className="text-4xl font-black text-gray-900 mb-2">Painel de Pedidos</h1>
           <div className="flex items-center gap-3">
             <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg shadow-orange-200">
-              {orders.length} Pedidos Totais
+              {seasonFilteredOrders.length} Pedidos Totais
             </span>
             <span className="text-gray-400 text-sm font-medium italic">Manhãzinha 2026</span>
           </div>
