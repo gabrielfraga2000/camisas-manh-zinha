@@ -202,7 +202,7 @@ const OrderForm: React.FC = () => {
     <div className="min-h-screen bg-sunrise font-sans pb-20 selection:bg-orange-100 selection:text-orange-900">
       <header className="pt-16 pb-12 text-center">
         <h1 className="text-5xl font-black text-gray-900 tracking-tighter mb-2 italic">MANHÃZINHA</h1>
-        <p className="text-orange-900/60 font-medium tracking-wide uppercase text-xs">Pedido #6 • Coleção 2026</p>
+        <p className="text-orange-900/60 font-medium tracking-wide uppercase text-xs">Pedido #7 • Coleção 2026</p>
       </header>
 
       <main className="max-w-4xl mx-auto px-6">

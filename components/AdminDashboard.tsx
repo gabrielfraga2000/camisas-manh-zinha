@@ -8,6 +8,7 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'pending' | 'partial' | 'paid'>('all');
+  const [seasonFilter, setSeasonFilter] = useState<string>('all');
 
   useEffect(() => {
     const unsubscribe = subscribeToAllOrders((data) => {
@@ -17,7 +18,11 @@ const AdminDashboard: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  const availableSeasons = Array.from(new Set(orders.map(o => o.season))).filter(Boolean).sort();
+
   const filteredOrders = orders.filter(o => {
+    if (seasonFilter !== 'all' && o.season !== seasonFilter) return false;
+
     const matchesSearch = 
       o.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       o.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -146,6 +151,17 @@ const AdminDashboard: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+
+          <select
+            value={seasonFilter}
+            onChange={(e) => setSeasonFilter(e.target.value)}
+            className="p-4 bg-white/80 border border-orange-100 rounded-2xl shadow-sm focus:border-orange-500 outline-none transition-all text-sm font-bold text-gray-700"
+          >
+            <option value="all">Todas as Temporadas</option>
+            {availableSeasons.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
           
           <div className="flex bg-white/50 p-1 rounded-2xl border border-orange-100">
              {[
